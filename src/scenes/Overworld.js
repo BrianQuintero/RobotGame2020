@@ -3,18 +3,24 @@ class Overworld extends Phaser.Scene{
         super("overworldScene");
     }
     preload(){
-        this.load.image("testTiles", './assets/testTile.png');
-        this.load.tilemapTiledJSON('testMap', './assets/testMap.json');
+        //this.load.image("testTiles", './assets/testTile.png');
+        this.load.image('newTiles', './assets/Tilesheet_2.png');
+        //this.load.tilemapTiledJSON('testMap', './assets/testMap.json');
+        this.load.tilemapTiledJSON('testMap', './assets/tilesheetTestMap.json');
         this.load.image('player', './assets/player/playerTemp.png');
     }
     create(){
         //creation of tilemap for game
         const map = this.make.tilemap({key: 'testMap'});
-        const tileset = map.addTilesetImage('testTile', 'testTiles');
-        const mainLayer = map.createStaticLayer('Tile Layer 1', tileset, 0,0);
+        const tileset = map.addTilesetImage('Tilesheet_2', 'newTiles');
+        const groundLayer = map.createStaticLayer('Ground', tileset, 0,0);
+        const wallLayer = map.createStaticLayer('Walls', tileset, 0,0);
+        const decoLayer = map.createStaticLayer('Decorations', tileset,0,0);
+        let boxLayer = map.getObjectLayer('Pushable', tileset, 0, 0);
+        
         //physics world collision boundaries
         this.physics.world.setBounds(0,0,map.widthInPixels,map.heightInPixels);
-        mainLayer.setCollisionByProperty({collide: true});
+        wallLayer.setCollisionByProperty({collisionWall: true});
         this.cameras.main.setPosition(0,0);
         //keyboard controls
         keyRIGHT = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT);
@@ -31,10 +37,28 @@ class Overworld extends Phaser.Scene{
         this.boundaryMaxY = game.config.height;
         this.inBounds = true;
         //player spawn
-        const spawnPoint = map.findObject("Player", obj => obj.name === "PlayerSpawn");
+        const spawnPoint = map.findObject("SpawnPoint", obj => obj.name === "PlayerSpawn");
         //player creation and setup
         this.player = new Player(this, spawnPoint.x, spawnPoint.y, 'player');
-        console.log(this.player);
+        //box creation
+        /*this.boxes = this.physics.add.group({
+
+        });*/
+        this.boxes = map.createFromObjects("Pushable", "Block", 3);
+        //console.log(this.boxes);
+        this.physics.world.enable(this.boxes,Phaser.Physics.Arcade.DYNAMIC_BODY);
+        this.boxes.map((box) => {
+            box.body.setAllowDrag(true);
+            box.body.setDrag(10000, 10000);
+        });
+        //this.boxGroup = this.add.group(this.boxes);
+        this.physics.add.collider(this.player, this.boxes);
+        this.physics.add.collider(this.boxes, wallLayer);
+        this.physics.add.collider(this.boxes, this.boxes);
+        //this.boxes.add.setAllowDrag(true);
+        //this.boxes.physics.setAllowDrag(true);
+        //this.boxes.body.setDrag(99,0);
+        //health/battery stuff
         this.healthIndicator = this.add.text("Player Health: " + this.player.currentBattery);
         this.healthIndicator.setScrollFactor(0);
         //camera stuff
@@ -42,7 +66,7 @@ class Overworld extends Phaser.Scene{
         this.playerCameraPositionY = this.player.y;
         this.cameraPosX = 0;
         this.cameraPosY = 0;
-        this.physics.add.collider(this.player, mainLayer);
+        this.physics.add.collider(this.player, wallLayer);
         this.cameras.main.setBounds(0,0,map.widthInPixels, map.heightInPixels);
         this.cameras.main.roundPixels = true;
     }
@@ -109,6 +133,9 @@ class Overworld extends Phaser.Scene{
                 break;
         }
 
+    }
+    findBlock(){
+        console.log(this.box);
     }
 
 }
