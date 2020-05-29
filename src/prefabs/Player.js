@@ -30,6 +30,9 @@ class Player extends Phaser.Physics.Arcade.Sprite{
             this.setVelocityY(0);
             this.currentBattery -= 0;
         }
+        if(keyS.isDown){
+            this.recoverCharge(1);
+        }
     }
     recoverCharge(number){
         if(this.currentBattery + number > this.maxBattery){
