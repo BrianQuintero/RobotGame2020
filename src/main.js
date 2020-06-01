@@ -1,3 +1,9 @@
+/*
+    The Way Home
+    Art/Map Design: Jeven Zarate-McCoy
+    Music/Sound Design: Giovanni Lua-Trejo
+    Programming: Brian Quintero
+*/
 let config = {
     type: Phaser.CANVAS,
     width: 512,
