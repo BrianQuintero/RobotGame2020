@@ -1,9 +1,6 @@
 class TextBoxes extends Phaser.Scene{
     constructor(){
-        super("pauseScreen");
-    }
-    init(player){
-        player = this.player;
+        super("endScreen");
     }
     preload(){
 
@@ -24,9 +21,6 @@ class TextBoxes extends Phaser.Scene{
     }
     update(){
         if(keySPACE.isDown){
-            //console.log(this.player);
-            this.scene.resume("overworldScene");
-            //this.player.stopPlayer();
             this.scene.stop();
         }
     }

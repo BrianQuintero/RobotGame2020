@@ -5,11 +5,12 @@ class Overworld extends Phaser.Scene{
     preload(){
         //images and tilemaps
         this.load.image('newTiles', './assets/Tilesheet_2.png');
-        this.load.tilemapTiledJSON('testMap', './assets/tilesheetTestMap.json');
+        this.load.tilemapTiledJSON('finalMap', './assets/finalMap.json');
         this.load.image('player', './assets/player/playerTemp.png');
         this.load.image('crate', './assets/crate.png');
         this.load.image('batteryPickup', './assets/batteryPickup.png');
         this.load.image('batteryUI', './assets/batteryUI.png');
+        this.load.image('lorePiece', './assets/lorePiece.png');
         this.load.atlas('robot', './assets/player/robot.png', './assets/player/robot.json');
         this.load.atlas('textBox', './assets/textBox.png', './assets/textBox.json');
 
@@ -26,12 +27,10 @@ class Overworld extends Phaser.Scene{
         });
 
         //creation of tilemap for game
-        const map = this.make.tilemap({key: 'testMap'});
-        const tileset = map.addTilesetImage('Tilesheet_2', 'newTiles');
-        const groundLayer = map.createStaticLayer('Ground', tileset, 0,0);
+        const map = this.make.tilemap({key: 'finalMap'});
+        const tileset = map.addTilesetImage('Tilesheet_Final_1', 'newTiles');
+        const groundLayer = map.createStaticLayer('Floor', tileset, 0,0);
         this.wallLayer = map.createStaticLayer('Walls', tileset, 0,0);
-        const decoLayer = map.createStaticLayer('Decorations', tileset,0,0);
-        let boxLayer = map.getObjectLayer('Pushable', tileset, 0, 0);
 
         //text box animation
         this.textAnimation = this.add.sprite(95, 245, 'textBox').setOrigin(0,0);
@@ -49,16 +48,21 @@ class Overworld extends Phaser.Scene{
         });
         this.textAnimationComplete = false;
 
+        //lore text creation
+        var lore1 = "Subjects remain halfway between human and “oil monster” in a state of pain and semi-sapience before entirely losing themselves. Often they hide just out of sight and become dormant until a living creature it can hunt comes close.";
+        var lore2 = "Onset of the illness comes at varying speeds and there are no symptoms before it begins. The lucky ones are placed inside cryogenic chambers to buy them more time, but it doesn’t hold it off forever.";
+        var lore3 = "We’ve found that the oil-like form of people lost to the illness can occasionally keep some control and output currents with surprising precision. This unfortunately is not a cure but may provide another way of life for victims.";
+        var lore4 = "Three million potential infected who have not yet turned have been collected and placed in cryogenic storage to help prevent further casualties from victims or the Oil Beasts as they’ve been called";
+        var lore5 = "Our researchers are suddenly being attacked by the illness at an incredibly high rate as well as many outside we thought were immune before. We’re going to go through with the Auto-Cure Generation program so even if we all die...";
+        var lore6 = "We’ve designed a sapient machine that will reboot once every decade to check the progress of the cure. It will be able to load itself into a terminal and decide whether to continue trials or... end it. It's our only hope.";
+        
         //word checking array
-        this.words = ["One", "Two", "Three"];
+        this.words = [lore1, lore2, lore3, lore4, lore5, lore6];
         this.i = 0;
 
-        this.checkBox = this.physics.add.sprite(100,100);
-        this.checkBox.body.setCircle(5);
-        this.front = false;
         //physics world collision boundaries
         this.physics.world.setBounds(0,0,map.widthInPixels,map.heightInPixels);
-        this.wallLayer.setCollisionByProperty({collisionWall: true});
+        this.wallLayer.setCollisionByProperty({CollisionWall: true});
         this.testRectangle = this.add.rectangle(256,300,320,100, 0x000000).setAlpha(0);
         //keyboard controls
         keyRIGHT = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT);
@@ -72,9 +76,8 @@ class Overworld extends Phaser.Scene{
         keyH = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.H);
         keySPACE = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
 
-
         //player creation and setup
-        this.spawnPoint = map.findObject("SpawnPoint", obj => obj.name === "PlayerSpawn");
+        this.spawnPoint = map.findObject("PlayerSpawn", obj => obj.name === "SpawnPoint");
         this.player = new Player(this, this.spawnPoint.x, this.spawnPoint.y, 'robot');
         this.healthbar = this.add.sprite(35, 15, 'batteryUI').setScale(1, .60);
         this.healthbar.setScrollFactor(0);
@@ -85,42 +88,20 @@ class Overworld extends Phaser.Scene{
         this.batteriesCollected = 0;
         this.liv = true;
 
-        //button creation
-        this.buttons = map.createFromObjects("Buttons", "TestButton");
-        this.physics.world.enable(this.buttons, Phaser.Physics.Arcade.DYNAMIC_BODY);
-        this.buttons.map((button) => {
-            button.body.setSize(5,5);
-        });
         //end game terminal
-        this.endButton = map.createFromTiles(25);
-        this.physics.world.enable(this.endButton, Phaser.Physics.Arcade.DYNAMIC_BODY);
-        /*this.endButton.map((endGame) => {
-            endGame.body.setImmovable(true);
-        });*/
-
-        //box creation
-        this.boxes = map.createFromObjects("Pushable", "Block", {
-            key: "crate"
+        
+        this.lorePiece = map.createFromObjects("lore", "lorePiece", {
+            key: 'lorePiece'
         });
-        this.physics.world.enable(this.boxes,Phaser.Physics.Arcade.DYNAMIC_BODY);
-        this.boxes.map((box) => {
-            box.body.setAllowDrag(true);
-            box.body.setDrag(10000, 10000);
-        });
-
+        this.physics.world.enable(this.lorePiece, Phaser.Physics.Arcade.DYNAMIC_BODY);
         //battery creation
-        this.batteries = map.createFromObjects("Batteries", "batteryPickup", {
+        this.batteries = map.createFromObjects("batteries", "batteryPickup", {
             key: 'batteryPickup'
         });
         this.physics.world.enable(this.batteries, Phaser.Physics.Arcade.DYNAMIC_BODY);
 
         //collision commands
-        this.physics.add.collider(this.boxes, this.endButton, this.testFunction);
-        this.physics.add.overlap(this.boxes, this.buttons, this.buttonPush);
-        this.physics.add.collider(this.player, this.boxes);
-        this.physics.add.collider(this.boxes, this.wallLayer, this.testFunction);
-        this.physics.add.collider(this.boxes, this.boxes);
-        this.physics.add.overlap(this.boxes, this.checkBox, this.testFunction);
+        this.physics.add.overlap(this.player, this.checkBox, this.gameOver);
         this.physics.add.overlap(this.player, this.batteries, (player, battery) => {
             this.makeText("battery");
             this.sound.play('recover');
@@ -174,6 +155,25 @@ class Overworld extends Phaser.Scene{
         //The "box" part of the text box
         this.testRectangle.setScrollFactor(0);
         this.testRectangle.setDepth(10);
+
+        //end game area
+        this.endMarker = map.findObject("endGame", obj => obj.name === "endCircle");
+        this.checkBox = this.physics.add.sprite(100,100);
+        this.checkBox.x = this.endMarker.x;
+        this.checkBox.y = this.endMarker.y;
+        this.checkBox.body.setCircle(100);
+        this.endGame = false;
+
+        this.physics.add.overlap(this.player, this.checkBox, () => {
+            this.player.die();
+            this.player.setVelocityX(0);
+            this.player.setVelocityY(0);
+        });
+
+        this.physics.add.overlap(this.player, this.lorePiece, (player, lore) => {
+            this.makeText();
+            lore.destroy();
+        });
         //physics debug
         /*const debugGraphics = this.add.graphics().setAlpha(0.75);
         this.wallLayer.renderDebug(debugGraphics, {tileColor: null, // Color of non-colliding tiles
@@ -182,9 +182,6 @@ class Overworld extends Phaser.Scene{
         });*/
     }
     update(){
-        //console.log(this.front.body.touching);
-        this.checkBox.x = this.player.x + 10;
-        this.checkBox.y = this.player.y - 10;
         if(this.player.currentBattery >= 1 && this.liv){
             this.player.update();
         }
@@ -195,7 +192,7 @@ class Overworld extends Phaser.Scene{
             this.closeText();
         }
         //death condition
-        if(this.player.currentBattery < 1 && this.liv){
+        if(this.player.currentBattery < 1 && this.liv && this.player.body.touching.none){
             this.liv = false;
             this.sound.play('noBattery');
             this.player.anims.play('deathAnim', true);
@@ -206,6 +203,17 @@ class Overworld extends Phaser.Scene{
                     this.respawn();
                 },null, this);
             });
+        }
+        else if(this.player.currentBattery < 1 && this.liv && !this.player.body.touching.none){
+            this.liv = false;
+            this.player.anims.play('deathAnim', true);
+            this.player.once("animationcomplete", () =>{
+                this.clock = this.time.delayedCall(1978, () => {
+                    this.cameras.main.fadeOut();
+                },null, this);
+            });
+            console.log("words");
+
         }
 
         //battery bar updates
@@ -239,6 +247,7 @@ class Overworld extends Phaser.Scene{
             this.updateCamera("up");
         }
     }
+
     //camera change algorithm
     updateCamera(direction){
         switch(direction){
@@ -277,18 +286,23 @@ class Overworld extends Phaser.Scene{
         }
 
     }
-    testFunction(){
-        this.front = true;
-        console.log("Test complete");
-    }
-    buttonPush(){
-        console.log("button pushed");
+    gameOver(){
+
     }
     respawn(){
         //recreate player and collisions (there has to be a better way to do this)
         this.player = new Player(this, this.spawnPoint.x, this.spawnPoint.y, 'robot');
         this.physics.add.collider(this.player, this.wallLayer);
         this.physics.add.collider(this.player, this.boxes);
+        this.physics.add.overlap(this.player, this.lorePiece, (player, lore) => {
+            this.makeText();
+            lore.destroy();
+        });
+        this.physics.add.overlap(this.player, this.checkBox, () => {
+            this.player.die();
+            this.player.setVelocityX(0);
+            this.player.setVelocityY(0);
+        });
         this.physics.add.overlap(this.player, this.batteries, (player, battery) => {
             this.sound.play('recover');
             this.makeText("battery");
@@ -333,9 +347,9 @@ class Overworld extends Phaser.Scene{
                 this.mainText.text = "Your maximum battery has increased by 25!";
             }
             else{
-                this.textBox.text = this.words.shift();
-                this.mainText.text = "";
-                //this.i++;
+                this.textBox.text = "Memory Entry #" + (this.i + 1) + " found";
+                this.mainText.text = this.words.shift();
+                this.i++;
             }
         });
     }
