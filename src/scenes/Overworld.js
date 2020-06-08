@@ -351,7 +351,7 @@ class Overworld extends Phaser.Scene{
                 this.mainText.text = "Your maximum battery has increased by 25!";
             }
             else if(type === "lore"){
-                this.textBox.text = "Memory Entry #" + (this.i + 1) + " found";
+                this.textBox.text = "Memory Entry #" + (this.i + 1) + " of 6 found";
                 this.mainText.text = this.words.shift();
                 this.i++;
             }
