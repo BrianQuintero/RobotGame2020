@@ -81,7 +81,7 @@ class Overworld extends Phaser.Scene{
 
         //player creation and setup
         this.spawnPoint = map.findObject("PlayerSpawn", obj => obj.name === "SpawnPoint");
-        this.player = new Player(this, this.spawnPoint.x, this.spawnPoint.y, 'robot');
+        this.player = new Player(this, this.spawnPoint.x, this.spawnPoint.y, 'robot').setScale(0.89,0.89);
         this.healthbar = this.add.sprite(35, 15, 'batteryUI').setScale(1, .60);
         this.healthbar.setScrollFactor(0);
         this.healthbar.setDepth(10);
@@ -357,7 +357,7 @@ class Overworld extends Phaser.Scene{
             }
             else if(type === "tutorial"){
                 this.textBox.text = "Hello World!";
-                this.mainText.text = "Use the arrow keys to move around. Press Z to die instantly"
+                this.mainText.text = "Use the arrow keys to move around. Press Z to die immediately and respawn";
             }
         });
     }
