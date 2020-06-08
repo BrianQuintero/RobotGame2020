@@ -3,9 +3,12 @@ class Player extends Phaser.Physics.Arcade.Sprite{
         super(scene,x,y,texture,frame);
         scene.add.existing(this);
         scene.physics.add.existing(this);
+        this.body.setSize(29,29);
         this.maxBattery = 25;
         this.currentBattery = this.maxBattery;
         this.alive = true;
+        this.drainRate = .008;
+
         //idle animation
         this.scene.anims.create({
             key: 'idleAnim',
@@ -18,6 +21,7 @@ class Player extends Phaser.Physics.Arcade.Sprite{
             frameRate: 8,
             repeat: -1
         });
+
         //moving animation
         this.scene.anims.create({
             key: 'movingAnim',
@@ -30,6 +34,7 @@ class Player extends Phaser.Physics.Arcade.Sprite{
             frameRate: 8,
             repeat: -1
         });
+
         //death animation
         this.scene.anims.create({
             key: 'deathAnim',
@@ -44,13 +49,26 @@ class Player extends Phaser.Physics.Arcade.Sprite{
         });
         this.anims.play('idleAnim');
         this.notKeyZ = true;
+
+        //special death animation
+        this.scene.anims.create({
+            key: 'specialDeathAnim',
+            frames: this.scene.anims.generateFrameNames('specialDeath', {
+                prefix: 'sprite',
+                start: 1,
+                end: 24,
+            }),
+            frameRate: 8,
+            repeat: 0
+        });
     }
+
     update(){
         //key down
         if(this.currentBattery > 1 && this.alive){
             if(keyLEFT.isDown){
                 this.setVelocityX(-100);
-                this.currentBattery -= .05;
+                this.currentBattery -= this.drainRate;
                 this.setRotation(Math.PI/2);
                 this.anims.play('movingAnim', true);
                 this.scene.sound.play('walkSound', {
@@ -59,7 +77,7 @@ class Player extends Phaser.Physics.Arcade.Sprite{
             }
             else if(keyRIGHT.isDown){
                 this.setVelocityX(100);
-                this.currentBattery -= .05;
+                this.currentBattery -= this.drainRate;
                 this.setRotation(-Math.PI/2);
                 this.anims.play('movingAnim', true);
                 this.scene.sound.play('walkSound', {
@@ -68,7 +86,7 @@ class Player extends Phaser.Physics.Arcade.Sprite{
             }
             else if(keyUP.isDown){
                 this.setVelocityY(-100);
-                this.currentBattery -= .05;
+                this.currentBattery -= this.drainRate;
                 this.setRotation(Math.PI);
                 this.anims.play('movingAnim', true);
                 this.scene.sound.play('walkSound', {
@@ -77,7 +95,7 @@ class Player extends Phaser.Physics.Arcade.Sprite{
             }
             else if(keyDOWN.isDown){
                 this.setVelocityY(100);
-                this.currentBattery -= .05;
+                this.currentBattery -= this.drainRate;
                 this.setRotation(0);
                 this.anims.play('movingAnim', true);
                 this.scene.sound.play('walkSound', {
@@ -88,25 +106,15 @@ class Player extends Phaser.Physics.Arcade.Sprite{
             if(keyLEFT.isUp && keyRIGHT.isUp && keyUP.isUp && keyDOWN.isUp){
                 this.stopPlayer();
             }
-            if(keyS.isDown){
-                this.recoverCharge(1);
-            }
 
         }
         if(this.currentBattery < 1){
             this.alive = false;
             this.stopPlayer();
         }
-        if(keyA.isDown){
-            this.anims.play('deathAnim', true);
-        }
-        if(keyW.isDown){
+        if(Phaser.Input.Keyboard.JustDown(keyZ)){
             this.die();
             this.stopPlayer();
-        }
-        if(Phaser.Input.Keyboard.JustDown(keyZ)){
-            //this.input.disabled = true;
-            console.log("Z button pressed");
         }
     }
     recoverCharge(number){
@@ -119,6 +127,7 @@ class Player extends Phaser.Physics.Arcade.Sprite{
     }
     increaseMaxCharge(number){
         this.maxBattery += number;
+        this.currentBattery = this.maxBattery;
     }
     die(){
         this.currentBattery = 0;

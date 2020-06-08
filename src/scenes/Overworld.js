@@ -13,12 +13,15 @@ class Overworld extends Phaser.Scene{
         this.load.image('lorePiece', './assets/lorePiece.png');
         this.load.atlas('robot', './assets/player/robot.png', './assets/player/robot.json');
         this.load.atlas('textBox', './assets/textBox.png', './assets/textBox.json');
+        this.load.atlas("specialDeath", './assets/specialDeath.png', './assets/specialDeath.json');
 
         //sounds
         this.load.audio('noBattery', './assets/audio/OOB.wav');
         this.load.audio('bgm', './assets/audio/1.mp3');
         this.load.audio('walkSound', './assets/audio/Walk.wav');
         this.load.audio('recover', './assets/audio/Refill.wav');
+        this.load.audio('collectLore', './assets/audio/Collect.wav');
+        this.load.audio('endingDeath', './assets/audio/D2.wav');
     }
     create(){
         this.bgm = this.sound.add('bgm');
@@ -88,12 +91,12 @@ class Overworld extends Phaser.Scene{
         this.batteriesCollected = 0;
         this.liv = true;
 
-        //end game terminal
-        
+        //Lore piece pickup
         this.lorePiece = map.createFromObjects("lore", "lorePiece", {
             key: 'lorePiece'
         });
         this.physics.world.enable(this.lorePiece, Phaser.Physics.Arcade.DYNAMIC_BODY);
+
         //battery creation
         this.batteries = map.createFromObjects("batteries", "batteryPickup", {
             key: 'batteryPickup'
@@ -143,6 +146,7 @@ class Overworld extends Phaser.Scene{
         this.boundaryMinY = this.playerCameraConstantY * game.config.height;
         this.boundaryMaxY = (this.playerCameraConstantY + 1) * game.config.height;
         this.inBounds = true;
+
         //header text box
         this.textBox = this.add.text(100, 250, "");
         this.textBox.setScrollFactor(0);
@@ -152,9 +156,10 @@ class Overworld extends Phaser.Scene{
         this.mainText = this.add.text(100, 280, "", mainTextConfig);
         this.mainText.setScrollFactor(0);
         this.mainText.setDepth(100);
-        //The "box" part of the text box
-        this.testRectangle.setScrollFactor(0);
-        this.testRectangle.setDepth(10);
+
+        this.closeTo = this.add.text(305, 330, "", mainTextConfig);
+        this.closeTo.setScrollFactor(0);
+        this.closeTo.setDepth(100)
 
         //end game area
         this.endMarker = map.findObject("endGame", obj => obj.name === "endCircle");
@@ -171,22 +176,15 @@ class Overworld extends Phaser.Scene{
         });
 
         this.physics.add.overlap(this.player, this.lorePiece, (player, lore) => {
-            this.makeText();
+            this.makeText("lore");
+            this.sound.play('collectLore');
             lore.destroy();
         });
-        //physics debug
-        /*const debugGraphics = this.add.graphics().setAlpha(0.75);
-        this.wallLayer.renderDebug(debugGraphics, {tileColor: null, // Color of non-colliding tiles
-        collidingTileColor: new Phaser.Display.Color(243, 134, 48, 255), // Color of colliding tiles
-        faceColor: new Phaser.Display.Color(40, 39, 37, 255) // Color of colliding face edges
-        });*/
+        this.makeText("tutorial");
     }
     update(){
         if(this.player.currentBattery >= 1 && this.liv){
             this.player.update();
-        }
-        if(Phaser.Input.Keyboard.JustDown(keyH)){
-            this.makeText();
         }
         if(Phaser.Input.Keyboard.JustDown(keySPACE)){
             this.closeText();
@@ -206,14 +204,18 @@ class Overworld extends Phaser.Scene{
         }
         else if(this.player.currentBattery < 1 && this.liv && !this.player.body.touching.none){
             this.liv = false;
-            this.player.anims.play('deathAnim', true);
+            this.bgm.stop();
+            this.player.setRotation(0);
+            this.sound.play('endingDeath');
+            this.player.anims.play('specialDeathAnim', true);
             this.player.once("animationcomplete", () =>{
                 this.clock = this.time.delayedCall(1978, () => {
                     this.cameras.main.fadeOut();
+                    this.cameras.main.once("camerafadeoutcomplete", () => {
+                        this.scene.start("endingScreen");
+                    })
                 },null, this);
             });
-            console.log("words");
-
         }
 
         //battery bar updates
@@ -295,7 +297,8 @@ class Overworld extends Phaser.Scene{
         this.physics.add.collider(this.player, this.wallLayer);
         this.physics.add.collider(this.player, this.boxes);
         this.physics.add.overlap(this.player, this.lorePiece, (player, lore) => {
-            this.makeText();
+            this.makeText("lore");
+            this.sound.play('collectLore');
             lore.destroy();
         });
         this.physics.add.overlap(this.player, this.checkBox, () => {
@@ -342,14 +345,19 @@ class Overworld extends Phaser.Scene{
         this.textAnimation.anims.play('textAnim', true);
         this.textAnimation.once("animationcomplete", () => {
             this.textAnimationComplete = true;
+            this.closeTo.text = "[Press SPACE to close]";
             if(type === "battery"){
                 this.textBox.text = "Battery Obtained!";
                 this.mainText.text = "Your maximum battery has increased by 25!";
             }
-            else{
+            else if(type === "lore"){
                 this.textBox.text = "Memory Entry #" + (this.i + 1) + " found";
                 this.mainText.text = this.words.shift();
                 this.i++;
+            }
+            else if(type === "tutorial"){
+                this.textBox.text = "Hello World!";
+                this.mainText.text = "Use the arrow keys to move around. Press Z to die instantly"
             }
         });
     }
@@ -359,6 +367,7 @@ class Overworld extends Phaser.Scene{
             this.textAnimation.setAlpha(0);
             this.textBox.text = "";
             this.mainText.text = "";
+            this.closeTo.text = "";
             this.textAnimationComplete = false;
         }
     }

@@ -11,14 +11,14 @@ let config = {
     physics: {
         default: 'arcade',
         arcade: {
-            debug: true,
+            debug: false,
             gravity: {
                 x:0,
                 y: 0
             }
         }
     },
-    scene: [Intro, Loading, Overworld, TextBoxes]
+    scene: [TextBoxes, Intro, Loading, Overworld, Epilogue]
 }
 let game = new Phaser.Game(config);
 let keyRIGHT, keyLEFT, keyUP, keyDOWN, keyW, keyA, keyD, keyS, keySPACE, keyZ, keyH;

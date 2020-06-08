@@ -1,27 +1,27 @@
 class TextBoxes extends Phaser.Scene{
     constructor(){
-        super("endScreen");
+        super("titleScreen");
     }
     preload(){
-
+        this.load.atlas("title", './assets/titleScreen.png', './assets/titleScreen.json');
     }
     create(){
-        var words = ["One", "Two", "Three"];
-        var i = 4;
-        console.log(words.length);
-        if(i < words.length){
-            this.add.text(100, 100, words[i]);
-            i++;
-        }
-        else{
-            this.add.text(100, 100, words[words.length - 1]);
-        }
-        
+        this.introScreen = this.add.sprite(0,0,"title").setOrigin(0,0);
+        this.anims.create({
+            key: 'titleAnim',
+            frames: this.anims.generateFrameNames('title', {
+                prefix: 'sprite',
+                end: 6
+            }),
+            frameRate: 8,
+            repeat: -1
+        });
+        this.introScreen.anims.play('titleAnim');
         keySPACE = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
     }
     update(){
         if(keySPACE.isDown){
-            this.scene.stop();
+            this.scene.start("introScene");
         }
     }
 }
