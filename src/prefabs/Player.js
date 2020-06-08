@@ -7,7 +7,7 @@ class Player extends Phaser.Physics.Arcade.Sprite{
         this.maxBattery = 25;
         this.currentBattery = this.maxBattery;
         this.alive = true;
-        this.drainRate = .005;
+        this.drainRate = .0065;
 
         //idle animation
         this.scene.anims.create({
