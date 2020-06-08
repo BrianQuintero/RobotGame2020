@@ -21,4 +21,4 @@ let config = {
     scene: [TextBoxes, Intro, Loading, Overworld, Epilogue]
 }
 let game = new Phaser.Game(config);
-let keyRIGHT, keyLEFT, keyUP, keyDOWN, keyW, keyA, keyD, keyS, keySPACE, keyZ, keyH;
+let keyRIGHT, keyLEFT, keyUP, keyDOWN, keyW, keyA, keyD, keyS, keySPACE, keyZ, keyH, keyX;

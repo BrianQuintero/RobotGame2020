@@ -17,10 +17,10 @@ class TextBoxes extends Phaser.Scene{
             repeat: -1
         });
         this.introScreen.anims.play('titleAnim');
-        keySPACE = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+        keyX = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.X);
     }
     update(){
-        if(keySPACE.isDown){
+        if(keyX.isDown){
             this.scene.start("introScene");
         }
     }
